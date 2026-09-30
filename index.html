@@ -1,0 +1,117 @@
+<!doctype html>
+<html lang="pt-BR"><head>
+<meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<meta name="theme-color" content="#07111f"><title>Treino Flex V2</title>
+<style>
+*{box-sizing:border-box}body{margin:0;background:#07111f;color:#f8fafc;font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Arial,sans-serif}
+.app{max-width:620px;margin:auto;min-height:100vh;padding:18px 15px 100px}.ey{color:#34d399;font-size:12px;font-weight:900;letter-spacing:1.7px}.h1{font-size:30px;font-weight:900;margin:5px 0}.muted{color:#93a4bb}.title{font-size:21px;font-weight:850;margin:20px 0 10px}.grid{display:grid;grid-template-columns:1fr 1fr;gap:11px}.card,.exercise,.stat{background:#121d2e;border:1px solid #25344a;border-radius:17px}.card{padding:16px;color:#fff;text-align:left}.card b{display:block;font-size:18px;margin-top:8px}.emoji{font-size:27px}.primary,.secondary,.danger{border-radius:12px;padding:12px 14px;font-weight:800}.primary{width:100%;border:0;background:#34d399;color:#062219;margin-top:14px}.secondary{background:#18253a;border:1px solid #34445d;color:#fff}.danger{background:#3a1821;border:1px solid #632333;color:#fecdd3}.row{display:flex;gap:8px;align-items:center}.between{justify-content:space-between}.hidden{display:none!important}.exercise{padding:15px;margin:11px 0}.exercise h3{margin:0 0 3px;font-size:18px}.tag{font-size:11px;color:#34d399;font-weight:800}.set{display:grid;grid-template-columns:28px 1fr 1fr 43px;gap:7px;align-items:center;margin-top:8px}.set input{width:100%;background:#0b1525;border:1px solid #33445d;color:#fff;border-radius:9px;padding:9px}.check{height:38px;border-radius:9px;border:1px solid #34445d;background:#0b1525;color:#94a3b8;font-size:19px}.check.ok{background:#34d399;color:#052e1b;border-color:#34d399}.swap{border:0;background:none;color:#34d399;font-weight:800}.rest{margin-top:11px}.timer{position:fixed;z-index:30;left:12px;right:12px;bottom:84px;background:#152238;border:1px solid #34445d;border-radius:18px;padding:14px;box-shadow:0 20px 60px #000b}.clock{font-size:40px;font-weight:950}.bar{height:5px;background:#34445d;border-radius:5px;overflow:hidden}.bar i{display:block;height:100%;background:#34d399;transform-origin:left}.nav{position:fixed;bottom:0;left:0;right:0;height:70px;background:#0c1727f5;border-top:1px solid #26364e;display:flex;z-index:20}.nav button{flex:1;border:0;background:none;color:#91a2b9;font-size:12px}.nav button.active{color:#34d399}.nav span{display:block;font-size:21px}.statgrid{display:grid;grid-template-columns:1fr 1fr;gap:10px}.stat{padding:15px}.big{font-size:26px;font-weight:900;margin-top:4px}.history{padding:12px 0;border-bottom:1px solid #25344a}.settings{background:#121d2e;border:1px solid #25344a;border-radius:16px;padding:15px;margin-top:12px}.select{width:100%;background:#0b1525;color:#fff;border:1px solid #34445d;border-radius:10px;padding:10px}.toast{position:fixed;z-index:50;top:15px;left:50%;transform:translateX(-50%);background:#ecfdf5;color:#052e1b;border-radius:12px;padding:11px 15px;font-weight:800;display:none}
+</style></head><body><div class="app">
+
+<section id="home">
+<div class="ey">TREINO FLEX V2</div><div class="h1">Treino sem repetição.</div><div class="muted">Variedade inteligente + histórico de carga.</div>
+<div class="title">Escolha o foco</div><div id="types" class="grid"></div>
+<button class="primary" onclick="generate(randomKey())">🎲 Gerar treino aleatório</button>
+<div class="title">Configuração</div><div class="settings"><div class="muted">Exercícios por treino</div><select id="qty" class="select" onchange="saveSettings()"><option>4</option><option selected>5</option><option>6</option></select></div>
+</section>
+
+<section id="workout" class="hidden">
+<div class="row between"><div><div class="muted">SESSÃO</div><div class="title" id="wt" style="margin:3px 0"></div></div><button class="secondary" onclick="go('home')">←</button></div>
+<div id="recommend" class="settings"></div><div id="list"></div><button class="primary" onclick="finish()">✓ Finalizar treino</button>
+</section>
+
+<section id="evolution" class="hidden">
+<div class="title">Evolução</div><div class="statgrid">
+<div class="stat"><div class="muted">Treinos</div><div id="st1" class="big">0</div></div>
+<div class="stat"><div class="muted">Séries</div><div id="st2" class="big">0</div></div>
+<div class="stat"><div class="muted">Exercícios</div><div id="st3" class="big">0</div></div>
+<div class="stat"><div class="muted">Volume</div><div id="st4" class="big">0 kg</div></div></div>
+<div class="title">Histórico</div><div id="hist"></div>
+</section>
+
+<section id="settings" class="hidden">
+<div class="title">Configurações</div><div class="settings"><b>Preferências</b><p class="muted">O app evita exercícios usados recentemente e respeita grupos de função.</p><button class="danger" onclick="resetAll()">Apagar histórico</button></div>
+</section>
+
+<div id="timer" class="timer hidden"><div class="row between"><div><div class="muted">DESCANSO</div><div id="clock" class="clock">01:30</div></div><button class="secondary" onclick="closeTimer()">Fechar</button></div><div class="bar"><i id="bar"></i></div></div>
+<div id="toast" class="toast"></div>
+</div>
+<nav class="nav"><button id="n-home" class="active" onclick="go('home')"><span>🏠</span>Início</button><button id="n-workout" onclick="go('workout')"><span>🏋️</span>Treino</button><button id="n-evolution" onclick="go('evolution');renderEvolution()"><span>📊</span>Evolução</button><button id="n-settings" onclick="go('settings')"><span>⚙️</span>Ajustes</button></nav>
+
+<script>
+const DB={
+A:{name:"Peito",icon:"🫀",groups:[
+["Empurrar horizontal",["Supino reto com barra","Supino reto com halteres","Supino máquina","Supino convergente"]],
+["Empurrar inclinado",["Supino inclinado com barra","Supino inclinado com halteres","Supino inclinado na máquina","Press inclinado unilateral"]],
+["Isolamento",["Peck deck","Crucifixo com halteres","Crucifixo na máquina","Crucifixo no cabo"]],
+["Crossover",["Crossover alto","Crossover médio","Crossover baixo","Crossover unilateral"]],
+["Complementar",["Flexão de braços","Flexão com apoio elevado","Supino declinado","Pullover"]]]},
+B:{name:"Bíceps + Tríceps",icon:"💪",groups:[
+["Bíceps",["Rosca direta barra","Rosca alternada","Rosca Scott","Rosca máquina","Rosca no cabo"]],
+["Bíceps",["Rosca martelo","Martelo na corda","Rosca concentrada","Rosca inversa"]],
+["Tríceps",["Pulley barra","Pulley corda","Tríceps máquina","Pulley unilateral"]],
+["Tríceps",["Tríceps francês","Tríceps testa","Tríceps acima da cabeça","Tríceps coice"]]]},
+C:{name:"Posterior de pernas",icon:"🦵",groups:[
+["Flexão de joelho",["Mesa flexora","Cadeira flexora","Flexora unilateral","Flexora em pé"]],
+["Extensão de quadril",["Stiff barra","Stiff halteres","Terra romeno","Terra unilateral"]],
+["Glúteos",["Elevação pélvica","Glúteo máquina","Coice polia","Glúteo no cabo"]],
+["Posterior composto",["Good morning","Pull through","Extensão de quadril banco","Swing com kettlebell"]],
+["Unilateral",["Afundo reverso","Passada reversa","Step-up","Búlgaro com inclinação"]]]},
+D:{name:"Quadríceps",icon:"🦿",groups:[
+["Agachamento",["Agachamento livre","Agachamento Smith","Hack squat","Agachamento frontal"]],
+["Leg press",["Leg press 45°","Leg press horizontal","Leg press unilateral","Leg press pés baixos"]],
+["Extensão de joelho",["Cadeira extensora","Extensora unilateral","Extensora com pausa","Extensora drop-set"]],
+["Unilateral",["Afundo","Passada","Búlgaro","Step-up"]],
+["Complementar",["Sissy squat","Agachamento goblet","Agachamento com calcanhar elevado"]]]},
+E:{name:"Funcional + Abdômen",icon:"🔥",groups:[
+["Cardio",["Burpee","Polichinelo","Mountain climber","Corrida estacionária","Skater"]],
+["Core",["Prancha","Prancha lateral","Dead bug","Bird dog","Pallof press"]],
+["Abdômen",["Abdominal supra","Abdominal infra","Abdominal na polia","Abdominal bicicleta","Abdominal máquina"]],
+["Funcional",["Kettlebell swing","Battle rope","Box step-up","Agachamento com salto","Medicine ball slam"]],
+["Core dinâmico",["Bear crawl","Bear plank","Hollow body","Prancha com toque no ombro"]]]}
+};
+
+let key=null,session=[],timer=null,end=0,duration=90;
+function data(){try{return JSON.parse(localStorage.getItem("treinoFlexV2")||'{"sessions":[],"settings":{"qty":5}}')}catch(e){return {sessions:[],settings:{qty:5}}}}
+function save(d){localStorage.setItem("treinoFlexV2",JSON.stringify(d))}
+function pick(a){return a[Math.floor(Math.random()*a.length)]}
+function recent(){return new Set(data().sessions.flatMap(s=>s.items).slice(-40).map(x=>x.exercise))}
+function randomKey(){return pick(Object.keys(DB))}
+function saveSettings(){let d=data();d.settings.qty=+document.getElementById("qty").value;save(d)}
+function generate(k){
+key=k;let d=DB[k], qty=+document.getElementById("qty").value, used=recent(), chosen=[];
+let groups=[...d.groups].sort(()=>Math.random()-.5);
+for(let g of groups){if(chosen.length>=qty)break;let fresh=g[1].filter(x=>!used.has(x)&&!chosen.some(y=>y.exercise===x));let ex=pick(fresh.length?fresh:g[1].filter(x=>!chosen.some(y=>y.exercise===x)));chosen.push({role:g[0],exercise:ex,done:[0,0,0],loads:["","",""],reps:k==="E"?"15":"10"})}
+session=chosen;renderWorkout();go("workout")
+}
+function renderTypes(){document.getElementById("types").innerHTML=Object.entries(DB).map(([k,d])=>`<button class="card" onclick="generate('${k}')"><span class="emoji">${d.icon}</span><b>Treino ${k}</b><span class="muted">${d.name}</span></button>`).join("")}
+function lastFor(ex){let h=data().sessions.flatMap(s=>s.items).filter(x=>x.exercise===ex);return h.length?h[h.length-1]:null}
+function renderWorkout(){
+document.getElementById("wt").textContent=key+" · "+DB[key].name;
+let tips=session.map(x=>{let l=lastFor(x.exercise);return l?`${x.exercise}: última vez ${l.load||"sem carga"} kg × ${l.reps}`:null}).filter(Boolean);
+document.getElementById("recommend").innerHTML=tips.length?`<b>📈 Suas referências</b><div class="muted" style="margin-top:5px">${tips.join("<br>")}</div>`:"<b>🎲 Sessão nova</b><div class='muted'>Nenhum dos exercícios sorteados tem histórico recente.</div>";
+document.getElementById("list").innerHTML=session.map((x,i)=>`<div class="exercise"><div class="row between"><div><h3>${x.exercise}</h3><div class="tag">${x.role}</div></div><button class="swap" onclick="swap(${i})">🔄 Trocar</button></div>${x.done.map((ok,s)=>`<div class="set"><span class="muted">${s+1}</span><input type="number" value="${x.reps}" onchange="session[${i}].reps=this.value"><input type="number" step="0.5" placeholder="kg" value="${x.loads[s]}" onchange="session[${i}].loads[${s}]=this.value"><button class="check ${ok?'ok':''}" onclick="toggle(${i},${s})">${ok?'✓':'○'}</button></div>`).join("")}<div class="row rest"><button class="secondary" onclick="startTimer(90)">⏱ 1:30</button><button class="secondary" onclick="startTimer(120)">2:00</button></div></div>`).join("")
+}
+function toggle(i,s){session[i].done[s]=session[i].done[s]?0:1;renderWorkout();if(session[i].done[s])startTimer(90)}
+function swap(i){
+let g=DB[key].groups.find(g=>g[0]===session[i].role), taken=session.map(x=>x.exercise), old=recent();
+let a=g[1].filter(x=>!taken.includes(x)&&!old.has(x));if(!a.length)a=g[1].filter(x=>!taken.includes(x));if(!a.length)a=g[1];
+session[i].exercise=pick(a);session[i].done=[0,0,0];session[i].loads=["","",""];renderWorkout();toast("Exercício trocado")
+}
+function finish(){
+let d=data(),items=[];session.forEach(x=>x.done.forEach((ok,i)=>{if(ok)items.push({exercise:x.exercise,role:x.role,reps:+x.reps||0,load:+x.loads[i]||0,date:Date.now()})}));
+if(!items.length){toast("Marque pelo menos uma série.");return}
+d.sessions.push({type:key,name:DB[key].name,date:Date.now(),items});save(d);toast("Treino salvo! 💪");go("evolution");renderEvolution()
+}
+function renderEvolution(){
+let d=data(),items=d.sessions.flatMap(s=>s.items),volume=items.reduce((a,x)=>a+(x.load*x.reps),0),unique=new Set(items.map(x=>x.exercise));
+document.getElementById("st1").textContent=d.sessions.length;document.getElementById("st2").textContent=items.length;document.getElementById("st3").textContent=unique.size;document.getElementById("st4").textContent=Math.round(volume)+" kg";
+let h=items.slice(-15).reverse();document.getElementById("hist").innerHTML=h.length?h.map(x=>`<div class="history"><b>${x.exercise}</b><div class="muted">${x.reps} reps${x.load?" · "+x.load+" kg":""} · ${new Date(x.date).toLocaleDateString("pt-BR")}</div></div>`).join(""):"<div class='muted'>Nenhum treino registrado.</div>"
+}
+function resetAll(){if(confirm("Apagar todo o histórico?")){localStorage.removeItem("treinoFlexV2");renderEvolution();toast("Histórico apagado")}}
+function startTimer(sec){duration=sec;end=Date.now()+sec*1000;document.getElementById("timer").classList.remove("hidden");clearInterval(timer);timer=setInterval(tick,200);tick()}
+function tick(){let left=Math.max(0,end-Date.now()),s=Math.ceil(left/1000);document.getElementById("clock").textContent=String(Math.floor(s/60)).padStart(2,"0")+":"+String(s%60).padStart(2,"0");document.getElementById("bar").style.transform=`scaleX(${left/(duration*1000)})`;if(!left){clearInterval(timer);navigator.vibrate?.([300,100,300]);toast("Descanso finalizado!");}}
+function closeTimer(){clearInterval(timer);document.getElementById("timer").classList.add("hidden")}
+function go(id){["home","workout","evolution","settings"].forEach(x=>document.getElementById(x).classList.toggle("hidden",x!==id));document.querySelectorAll(".nav button").forEach(b=>b.classList.remove("active"));document.getElementById("n-"+id).classList.add("active")}
+function toast(t){let e=document.getElementById("toast");e.textContent=t;e.style.display="block";setTimeout(()=>e.style.display="none",1600)}
+let d=data();document.getElementById("qty").value=d.settings.qty||5;renderTypes();renderEvolution();
+</script></body></html>
